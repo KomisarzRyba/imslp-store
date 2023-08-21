@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Composer {
+  lastName  String
+  firstName String
+  Work      Work[]
+
+  @@id([lastName, firstName])
+}
+
+model Excerpt {
+  eID        Int        @id @default(autoincrement())
+  wTitle     String
+  cLastName  String
+  cFirstName String
+  instrName  String
+  Instrument Instrument @relation(fields: [instrName], references: [name])
+  Work       Work       @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
+  Marker     Marker[]
+  Rec        Rec[]
+}
+
+model Instrument {
+  name             String      @id
+  Excerpt          Excerpt[]
+  Instrument       Instrument  @relation("InstrumentToInstrument", fields: [name], references: [name])
+  other_Instrument Instrument? @relation("InstrumentToInstrument")
+}
+
+model Marker {
+  mID       Int     @id @default(autoincrement())
+  recID     String
+  excerptID Int
+  start     Int
+  end       Int
+  Excerpt   Excerpt @relation(fields: [excerptID], references: [eID])
+  Rec       Rec     @relation(fields: [recID], references: [rID])
+}
+
+model Rec {
+  rID        String    @id
+  wTitle     String
+  cLastName  String
+  cFirstName String
+  Marker     Marker[]
+  Work       Work      @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
+  Excerpt    Excerpt[]
+}
+
+model Work {
+  title      String
+  cLastName  String
+  cFirstName String
+  imslpID    Int?
+  Excerpt    Excerpt[]
+  Rec        Rec[]
+  Composer   Composer  @relation(fields: [cLastName, cFirstName], references: [lastName, firstName])
+
+  @@id([title, cLastName, cFirstName])
+}
