@@ -58,3 +58,5 @@ app.get('/push/works', async (req: Request, res: Response) => {
 		res.send(error).status(500);
 	}
 });
+
+app.get('/search', async (req: Request, res: Response) => {});
