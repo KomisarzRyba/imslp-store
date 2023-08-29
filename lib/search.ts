@@ -1,37 +1,72 @@
-import redis from './redis';
+import db from './utils/db';
 
-export const perPage = 2;
-
-//redis cache - sorted set, content format : c:LastName,_FirstName (composer) or w:WorkTitle (work)
-
-export type CacheResult = {
-	entries: { type: 'c' | 'w'; id: string }[];
-	isLastPage: boolean;
+export type ComposerQueryParams = {
+	q: string;
+	count: number;
+	page?: number;
+	cache?: string[];
 };
 
-export const getCache = async (
-	query: string,
-	page: number = 1
-): Promise<CacheResult> => {
-	const cacheResults: string[] = await redis.zrange(
-		query,
-		(page - 1) * perPage,
-		page * perPage,
-		{ rev: true }
-	);
-
-	if (cacheResults.length > perPage) {
-		cacheResults.pop();
-		var isLastPage = false;
-	} else {
-		var isLastPage = true;
-	}
-
-	const entries = cacheResults.map((result) => {
-		const [typeStr, id] = result.split(':');
-		const type = typeStr as 'c' | 'w';
-		return { type, id };
+export const getComposers = async ({
+	q,
+	count,
+	page,
+	cache,
+}: ComposerQueryParams) => {
+	const composers = await db.composer.findMany({
+		take: count,
+		skip: count * ((page ?? 1) - 1),
+		where: {
+			OR: [
+				{
+					lastName: {
+						startsWith: q,
+						mode: 'insensitive',
+					},
+				},
+				{
+					firstName: {
+						startsWith: q,
+						mode: 'insensitive',
+					},
+				},
+			],
+			NOT: {
+				AND: [
+					{
+						lastName: {
+							in:
+								cache?.map((c) =>
+									c
+										.slice(0, c.indexOf(',_'))
+										.replace('_', ' ')
+								) ?? [],
+						},
+					},
+					{
+						firstName: {
+							in:
+								cache?.map((c) =>
+									c
+										.slice(c.indexOf(',_') + 2)
+										.replace('_', ' ')
+								) ?? [],
+						},
+					},
+				],
+			},
+			works: {
+				some: {},
+			},
+		},
+		orderBy: {
+			works: {
+				_count: 'desc',
+			},
+		},
 	});
 
-	return { entries, isLastPage };
+	console.log(cache);
+	console.log(composers);
+	return composers;
 };

@@ -2,7 +2,7 @@ import { Work } from '@prisma/client';
 import fs from 'fs';
 import { array as zArray } from 'zod';
 import { FetchedComposer, fetchedComposerSchema } from './composer';
-import db from './db';
+import db from './utils/db';
 import { FetchedWork, fetchedWorkSchema } from './work';
 import { Prisma } from '@prisma/client';
 

@@ -11,7 +11,7 @@ datasource db {
 model Composer {
   lastName  String
   firstName String
-  Work      Work[]
+  works     Work[]
 
   @@id([lastName, firstName])
 }
@@ -22,16 +22,16 @@ model Excerpt {
   cLastName  String
   cFirstName String
   instrName  String
-  Instrument Instrument @relation(fields: [instrName], references: [name])
-  Work       Work       @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
-  Marker     Marker[]
-  Rec        Rec[]
+  instrument Instrument @relation(fields: [instrName], references: [name])
+  work       Work       @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
+  markers    Marker[]
+  recs       Rec[]
 }
 
 model Instrument {
   name             String      @id
-  Excerpt          Excerpt[]
-  Instrument       Instrument  @relation("InstrumentToInstrument", fields: [name], references: [name])
+  excerpts         Excerpt[]
+  instrument       Instrument  @relation("InstrumentToInstrument", fields: [name], references: [name])
   other_Instrument Instrument? @relation("InstrumentToInstrument")
 }
 
@@ -41,8 +41,8 @@ model Marker {
   excerptID Int
   start     Int
   end       Int
-  Excerpt   Excerpt @relation(fields: [excerptID], references: [eID])
-  Rec       Rec     @relation(fields: [recID], references: [rID])
+  excerpt   Excerpt @relation(fields: [excerptID], references: [eID])
+  rec       Rec     @relation(fields: [recID], references: [rID])
 }
 
 model Rec {
@@ -50,9 +50,9 @@ model Rec {
   wTitle     String
   cLastName  String
   cFirstName String
-  Marker     Marker[]
-  Work       Work      @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
-  Excerpt    Excerpt[]
+  markers    Marker[]
+  work       Work      @relation(fields: [wTitle, cLastName, cFirstName], references: [title, cLastName, cFirstName])
+  excerpts   Excerpt[]
 }
 
 model Work {
@@ -60,9 +60,9 @@ model Work {
   cLastName  String
   cFirstName String
   imslpID    Int?
-  Excerpt    Excerpt[]
-  Rec        Rec[]
-  Composer   Composer  @relation(fields: [cLastName, cFirstName], references: [lastName, firstName])
+  excerpts   Excerpt[]
+  recs       Rec[]
+  composer   Composer  @relation(fields: [cLastName, cFirstName], references: [lastName, firstName])
 
   @@id([title, cLastName, cFirstName])
 }
